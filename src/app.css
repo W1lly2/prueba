@@ -1,0 +1,140 @@
+@tailwind components;
+@tailwind utilities;
+
+html, body, #app { height: 100%; }
+
+/* Compacta un poco Bootstrap */
+:root { --bs-body-font-size: 0.9rem; }
+
+/* Cambia el tono global de bg-light (#f2f4f7 como ejemplo) */
+:root {
+  --bs-light-rgb: 214, 214, 214;  /* #756b6b */
+}
+
+/* Ancho “ideal” como el mock */
+.container-ideal { max-width: 1140px; margin-inline: auto; }
+
+/* Tablas e inputs compactos */
+.table-sm td, .table-sm th { padding-top: .35rem; padding-bottom: .35rem; }
+.compact .form-control,
+.compact .form-select { height: calc(1.6em + .5rem + 2px); padding: .25rem .5rem; font-size: .9rem; }
+
+/* Campos bloqueados: gris y cursor de bloqueo */
+.form-control:disabled,
+.form-select:disabled {
+  background-color: #f1f3f5 !important;
+  color: #495057 !important;
+  cursor: not-allowed !important;   /* “prohibido” (bloqueo) */
+}
+
+/* Logos más grandes y pegados a las esquinas */
+.logo-left,
+.logo-right {
+  height: clamp(32px, 4.2vw, 48px);  /* escala responsiva */
+  width: auto;
+  object-fit: contain;
+}
+
+/* Un poquito más grande en desktop */
+@media (min-width: 992px) {
+  .logo-left  { height: 46px; }
+  .logo-right { height: 42px; }
+}
+
+/* Quita margen visual: pegarlos más a los bordes */
+header .ps-0 { padding-left: 0 !important; }
+header .pe-0 { padding-right: 0 !important; }
+/* Logos más grandes y pegados a las esquinas */
+.logo-left,
+.logo-right {
+  height: clamp(32px, 4.2vw, 48px);  /* escala responsiva */
+  width: auto;
+  object-fit: contain;
+}
+
+/* Un poquito más grande en desktop */
+@media (min-width: 992px) {
+  .logo-left  { height: 46px; }
+  .logo-right { height: 42px; }
+}
+
+/* Quita margen visual: pegarlos más a los bordes */
+header .ps-0 { padding-left: 0 !important; }
+header .pe-0 { padding-right: 0 !important; }
+
+/* Encabezado azul marino para la 1ª columna de la tabla de datos */
+.kv-head{
+  background-color:#123d67;  /* azul marino similar al mock */
+  color:#fff;
+  width: 12rem;              /* da un ancho cómodo a la columna de etiquetas */
+  white-space: nowrap;
+}
+
+/* Encabezados de tablas de asignados/retirados en azul marino */
+.table-navy thead th{
+  background-color:#123d67;
+  color:#fff;
+}
+
+/* Azul corporativo tipo mock */
+:root { --navy: #123d67; }
+
+/* Título en azul */
+.text-navy { color: var(--navy) !important; }
+
+/* Columna izquierda (etiquetas) en la tabla de datos */
+.kv-head{
+  background-color: var(--navy) !important;
+  color: #fff !important;
+  width: 12rem;
+  white-space: nowrap;
+}
+
+/* Encabezados de las tablas de Asignados/Retirados */
+.table-navy thead th{
+  background-color: var(--navy) !important;
+  color: #fff !important;
+}
+
+/* Texto introductorio centrado y con ancho cómodo */
+.intro {
+  max-width: 56ch;            /* evita líneas muy largas */
+  margin: .25rem auto 1rem;   /* centra y separa */
+  text-align: center;
+}
+
+/* Títulos de secciones (un poquito más grandes y azules) */
+.section-title {
+  font-size: 1.1rem;          /* “un poquito” más grande */
+  color: var(--navy);         /* usa el azul definido antes */
+  font-weight: 600;
+  margin-bottom: .5rem;
+}
+
+/* Aviso amarillo superior */
+.note-banner{
+  background-color:#ffd24d;  /* amarillo tipo mock */
+  color:#000;
+  font-weight:600;
+  padding:.5rem .75rem;
+  border-radius:.25rem;
+  text-align:center;
+}
+
+/* Botón azul oscuro tipo barra inferior del mock */
+.btn-navy{
+  background-color:#0f2f5f;   /* puedes usar var(--navy) si prefieres */
+  border-color:#0f2f5f;
+  color:#fff;
+}
+.btn-navy:hover{ background-color:#0c274f; border-color:#0c274f; }
+
+/* Reusamos: .kv-head y .table-navy thead th ya definidos antes con var(--navy) */
+
+/* Títulos de sección grandes y azules para Carta */
+.section-title-lg{
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 1.2rem;       /* un poco más grande */
+  margin-bottom: .5rem;
+}
