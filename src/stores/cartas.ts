@@ -1,46 +1,47 @@
+// src/stores/cartas.ts
 import { writable } from 'svelte/store';
 
 export type Dispositivo = {
   descripcion: string;
-  assetTag?: string;
-  numeroSerie?: string;
-  accesorio?: string;
-};
-
-export type DatosUsuario = {
-  id: string;
-  nombre: string;
-  correo: string;
-  ubicacion: string;
-  supervisor: string;
-  correoSupervisor: string;
+  assetTag: string;
+  numeroSerie: string;
+  accesorio: string;
 };
 
 export type Carta = {
-  usuario: DatosUsuario;
-  tecnico: string;
+  // Datos del usuario (planos)
+  usuario: string;
+  nombreUsuario: string;
+  correoUsuario: string;
+  ubicacionUsuario: string;
+  supervisorId: string;
+  correoSupervisor: string;
+
+  // Flujo
   tipoAsignacion: string;
   asignados: Dispositivo[];
   retirados: Dispositivo[];
-  folio: string;
   aprobadorDetectado: string;
-  aceptoTerminos: boolean;
+
+  // ✅ nuevos (usados en CartaAceptacion.svelte)
+  aceptoTerminos?: boolean;
+  folio?: string;
 };
 
-export const carta = writable<Carta>({
-  usuario: {
-    id: '',
-    nombre: '',
-    correo: '',
-    ubicacion: '',
-    supervisor: '',
-    correoSupervisor: ''
-  },
-  tecnico: '',
+const initial: Carta = {
+  usuario: '',
+  nombreUsuario: '',
+  correoUsuario: '',
+  ubicacionUsuario: '',
+  supervisorId: '',
+  correoSupervisor: '',
   tipoAsignacion: '',
   asignados: [],
   retirados: [],
-  folio: '',
   aprobadorDetectado: '',
-  aceptoTerminos: false
-});
+  // ✅ inicializa para evitar undefined
+  aceptoTerminos: false,
+  folio: ''
+};
+
+export const carta = writable<Carta>(initial);

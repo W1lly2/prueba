@@ -13,7 +13,7 @@
 
   function enviar() {
     if (!acepta) return;
-    carta.update(c => ({ ...c, aceptoTerminos: true }));
+    carta.update((c) => ({ ...c, aceptoTerminos: true }));
     showModal = true; // abre el pop-up
   }
   function cerrarModal() { showModal = false; }
@@ -43,16 +43,40 @@
           <strong>Leer detenidamente</strong> - <em>Política de uso de dispositivos tecnológicos.</em>
         </div>
 
-        <!-- Datos del usuario -->
+        <!-- Datos del usuario (mismo UI, ahora mapeado al store actual) -->
         <div class="table-responsive mb-3">
           <table class="table table-bordered align-middle small mb-0">
             <tbody>
-              <tr><th class="kv-head">NOMBRE</th><td>{state.usuario.nombre || '—'}</td></tr>
-              <tr><th class="kv-head">USER ID</th><td>{state.usuario.id || '—'}</td></tr>
-              <tr><th class="kv-head">EMAIL</th><td>{state.usuario.correo || '—'}</td></tr>
-              <tr><th class="kv-head">UBICACIÓN</th><td>{state.usuario.ubicacion || '—'}</td></tr>
-              <tr><th class="kv-head">SUPERVISOR</th><td>{state.usuario.supervisor || '—'}</td></tr>
-              <tr><th class="kv-head">FOLIO</th><td>{state.folio || '—'}</td></tr>
+              <tr>
+                <th class="kv-head">NOMBRE</th>
+                <td>{state.nombreUsuario || '—'}</td>
+              </tr>
+              <tr>
+                <th class="kv-head">USER ID</th>
+                <td>{state.usuario || '—'}</td>
+              </tr>
+              <tr>
+                <th class="kv-head">EMAIL</th>
+                <td>{state.correoUsuario || '—'}</td>
+              </tr>
+              <tr>
+                <th class="kv-head">UBICACIÓN</th>
+                <td>{state.ubicacionUsuario || '—'}</td>
+              </tr>
+              <tr>
+                <th class="kv-head">SUPERVISOR</th>
+                <td>
+                  {#if state.supervisorId || state.correoSupervisor}
+                    {state.supervisorId || '—'}{state.correoSupervisor ? ` · ${state.correoSupervisor}` : ''}
+                  {:else}
+                    —
+                  {/if}
+                </td>
+              </tr>
+              <tr>
+                <th class="kv-head">FOLIO</th>
+                <td>PCR0000001</td>
+              </tr>
             </tbody>
           </table>
         </div>
