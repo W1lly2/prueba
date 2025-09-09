@@ -10,8 +10,8 @@
 
   // Auxiliares del form (inputs temporales)
   let tecnicoSeleccionado = '';
-  let descripcionTmp = '';
-  let serieTmp = '';
+  // ahora este campo sirve para ESCRIBIR el NÚMERO DE SERIE o una descripción
+  let dispositivoInput = '';
   let serieRetirarTmp = '';
 
   function setCarta(next: Carta) {
@@ -119,34 +119,39 @@
     }
   }
 
-  // -------- Asignar Dispositivo SOLO por Número de Serie ----------
+  // -------- Asignar Dispositivo ----------
+  // Se usa "dispositivoInput": si contiene un número de serie válido, autocompleta; si no,
+  // se considera descripción libre y se agrega tal cual.
   async function asignarDispositivo() {
-    const serial = (serieTmp || '').trim();
-    if (!descripcionTmp && !serial) return;
+    const input = (dispositivoInput || '').trim();
+    if (!input) return;
 
     let nuevo: Dispositivo = {
-      descripcion: descripcionTmp ?? '',
+      descripcion: input,  // si era serie, luego lo sustituimos por la descripción de la API
       assetTag: '',
-      numeroSerie: serial ?? '',
+      numeroSerie: '',     // si era serie, lo llenamos; si era texto libre, queda vacío
       accesorio: ''
     };
 
     try {
-      if (serial) {
-        const a = await getAssetBySerial(serial);
-        if (a) {
-          nuevo.descripcion = a.asset_description ?? nuevo.descripcion;
-          nuevo.assetTag = a.asset_tag ?? '';
-          nuevo.numeroSerie = a.asset_serial_number ?? serial;
-        }
+      // Intentar tratar el input como número de serie
+      const a = await getAssetBySerial(input);
+      if (a && (a.asset_serial_number || a.asset_tag || a.asset_description)) {
+        // Fue un serial: autocompletar
+        nuevo.descripcion = a.asset_description ?? input;
+        nuevo.assetTag = a.asset_tag ?? '';
+        nuevo.numeroSerie = a.asset_serial_number ?? input;
+      } else {
+        // No hubo match: lo dejamos como descripción libre
+        nuevo.numeroSerie = '';
       }
-    } catch (err) {
-      console.warn('No se pudo autocompletar activo por número de serie:', err);
+    } catch {
+      // Si falla la API, lo dejamos como descripción libre
+      nuevo.numeroSerie = '';
     }
 
     setCarta({ ...state, asignados: [...state.asignados, nuevo] });
-    descripcionTmp = '';
-    serieTmp = '';
+    dispositivoInput = '';
   }
 
   // -------- Retirar Dispositivo (misma lógica de autocompletar) ----------
@@ -210,9 +215,8 @@
         <!-- Datos usuario -->
         <div class="row g-3">
           <div class="col-md-2">
-            <label for="inp-userid" class="form-label fw-bold">User ID</label>
+            <label class="form-label fw-bold">User ID</label>
             <input
-              id="inp-userid"
               class="form-control"
               placeholder="USUARIO1"
               bind:value={state.usuario}
@@ -221,28 +225,28 @@
           </div>
 
           <div class="col-md-3">
-            <label for="inp-nombre" class="form-label">Nombre de Usuario</label>
-            <input id="inp-nombre" class="form-control" bind:value={state.nombreUsuario} disabled />
+            <label class="form-label">Nombre de Usuario</label>
+            <input class="form-control" bind:value={state.nombreUsuario} disabled />
           </div>
 
           <div class="col-md-3">
-            <label for="inp-correo" class="form-label">Correo</label>
-            <input id="inp-correo" class="form-control" bind:value={state.correoUsuario} disabled />
+            <label class="form-label">Correo</label>
+            <input class="form-control" bind:value={state.correoUsuario} disabled />
           </div>
 
           <div class="col-md-2">
-            <label for="inp-ubicacion" class="form-label">Ubicación</label>
-            <input id="inp-ubicacion" class="form-control" bind:value={state.ubicacionUsuario} disabled />
+            <label class="form-label">Ubicación</label>
+            <input class="form-control" bind:value={state.ubicacionUsuario} disabled />
           </div>
 
           <div class="col-md-2">
-            <label for="inp-supervisorid" class="form-label">Supervisor ID</label>
-            <input id="inp-supervisorid" class="form-control" bind:value={state.supervisorId} disabled />
+            <label class="form-label">Supervisor ID</label>
+            <input class="form-control" bind:value={state.supervisorId} disabled />
           </div>
 
           <div class="col-md-4">
-            <label for="inp-correosup" class="form-label">Correo de Supervisor</label>
-            <input id="inp-correosup" class="form-control" bind:value={state.correoSupervisor} disabled />
+            <label class="form-label">Correo de Supervisor</label>
+            <input class="form-control" bind:value={state.correoSupervisor} disabled />
           </div>
         </div>
 
@@ -250,32 +254,24 @@
 
         <!-- Técnico -->
         <div class="mb-3">
-          <label for="sel-tecnico" class="form-label fw-bold">Técnico</label>
+          <label class="form-label fw-bold">Técnico</label>
           <div class="input-group">
-            <select id="sel-tecnico" class="form-select" bind:value={tecnicoSeleccionado}>
+            <select class="form-select" bind:value={tecnicoSeleccionado}>
               <option value="" selected>Selecciona técnico…</option>
               <option value="SANCHG27">SANCHG27 - Gaston Sanchez (Monterrey IT)</option>
             </select>
           </div>
         </div>
 
-        <!-- Asignar dispositivo -->
+        <!-- Asignar dispositivo (UN SOLO CAMPO) -->
         <div class="mb-3">
-          <label for="inp-asignar-desc" class="form-label fw-bold">Dispositivo</label>
+          <label class="form-label fw-bold">Dispositivo</label>
           <div class="row g-2">
             <div class="col-md">
               <input
-                id="inp-asignar-desc"
                 class="form-control"
-                placeholder="Descripción (opcional)"
-                bind:value={descripcionTmp} />
-            </div>
-            <div class="col-md-3">
-              <input
-                id="inp-asignar-serial"
-                class="form-control"
-                placeholder="Número de serie"
-                bind:value={serieTmp} />
+                placeholder="Descripción o número de serie"
+                bind:value={dispositivoInput} />
             </div>
             <div class="col-auto">
               <button class="btn btn-primary" on:click={asignarDispositivo}>
@@ -287,8 +283,8 @@
 
         <!-- Tipo de asignación -->
         <div class="mb-4">
-          <label for="sel-tipo-asignacion" class="form-label fw-bold">Tipo de Asignación</label>
-          <select id="sel-tipo-asignacion" class="form-select" bind:value={state.tipoAsignacion}>
+          <label class="form-label fw-bold">Tipo de Asignación</label>
+          <select class="form-select" bind:value={state.tipoAsignacion}>
             <option value="" selected>Selecciona…</option>
             <option value="PC Refresh">PC Refresh</option>
             <option value="Alta">Alta</option>
@@ -358,11 +354,10 @@
 
         <!-- Retirar -->
         <div class="mt-4">
-          <label for="inp-retirar-serial" class="form-label fw-bold">Retirar Dispositivo</label>
+          <label class="form-label fw-bold">Retirar Dispositivo</label>
           <div class="row g-2">
             <div class="col">
               <input
-                id="inp-retirar-serial"
                 class="form-control"
                 placeholder="Ej: SN987654321"
                 bind:value={serieRetirarTmp} />
