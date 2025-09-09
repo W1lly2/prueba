@@ -43,7 +43,7 @@
           <strong>Leer detenidamente</strong> - <em>Política de uso de dispositivos tecnológicos.</em>
         </div>
 
-        <!-- Datos del usuario (mismo UI, ahora mapeado al store actual) -->
+        <!-- Datos del usuario -->
         <div class="table-responsive mb-3">
           <table class="table table-bordered align-middle small mb-0">
             <tbody>
@@ -149,7 +149,8 @@
         <p class="small text-muted">
           Por medio de la presente declaro que he recibido los dispositivos tecnológicos antes mencionados.
           Asumo la responsabilidad de su guarda y cuidado, y me comprometo a cumplir con la
-          <a href="#" class="link-primary">Política de uso de Dispositivos Tecnológicos</a> definida por la empresa.
+          <a href="#/politica-uso" class="link-primary">Política de uso de Dispositivos Tecnológicos</a>
+          definida por la empresa.
         </p>
 
         <div class="form-check mb-3">

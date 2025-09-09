@@ -1,64 +1,32 @@
 # app/routes/whrasset.py
-# This module defines asset-related endpoints for the FastAPI application.
-#
+from fastapi import APIRouter, HTTPException, Query
+from app.core.jsend import jsend_success
+import app.models.whrasset as whrassets  # SQL plano, sin ORM
 
-# Application imports
-from fastapi import APIRouter, Depends
-from app.core import jsend_success
-from app.schemas.whrasset import WhrAsset
-from datetime import datetime
-from uuid import uuid4
-
-# Create FastAPI router for system-related endpoints
 router = APIRouter(prefix="/api/v1/assets", tags=["WHR Assets"])
 
+# GET /api/v1/assets?asset_serial_number=...   (o lista/búsqueda con q)
+@router.get("", summary="List/search or get by serial (query)")
+async def get_assets(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    q: str | None = Query(None, description="buscar por serial/tag/descripcion"),
+    asset_serial_number: str | None = Query(None, description="búsqueda exacta por serial"),
+):
+    if asset_serial_number:
+        asset = await whrassets.get_by_serial(asset_serial_number)
+        if not asset:
+            raise HTTPException(status_code=404, detail="Asset no encontrado")
+        # >>> Clave: tu front espera un ARRAY como en el listado
+        return jsend_success(data=[asset])
 
-# Dummy data for assets
-def get_assets_list() -> list[WhrAsset]:
-    asset_list = []
-    for i in range(1, 9):
-        asset = WhrAsset(
-            asset_id=str(uuid4()),
-            contract_id=f"CONTRACT{i}",
-            contract_start_date=datetime.now(),
-            contract_maturity_date=datetime.now(),
-            asset_serial_number=f"SN{i}",
-            asset_tag=f"TAG{i}",
-            asset_description=f"Descripción del activo {i}",
-            asset_type=f"Tipo {i}",
-            asset_status=f"Estado {i}",
-            asset_other_info={"info": f"activo{i}"},
-            created_at=datetime.now(),
-            updated_at=datetime.now()
-        )
-        asset_list.append(asset)
-    return asset_list
-
-
-# Get all assets
-@router.get(
-    "",
-    summary="Get all assets",
-    dependencies=[Depends(get_assets_list),]
-)
-async def get_assets():
-    data = get_assets_list()
+    data = await whrassets.list_assets(limit, offset, q)
     return jsend_success(data=data)
 
-
-# Get asset by serial num
-@router.get(
-    "/{asset_serial_number}",
-    summary="Get asset by serial number",
-    dependencies=[Depends(get_assets_list),]
-)
+# GET /api/v1/assets/{asset_serial_number}  (devuelve un objeto)
+@router.get("/{asset_serial_number}", summary="Get by serial (path)")
 async def get_asset_by_serial_number(asset_serial_number: str):
-    data = get_assets_list()
-    asset = next(
-        (
-            item for item in data
-            if item.asset_serial_number == asset_serial_number
-        ),
-        None
-    )
+    asset = await whrassets.get_by_serial(asset_serial_number)
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset no encontrado")
     return jsend_success(data=asset)

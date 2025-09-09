@@ -27,14 +27,16 @@ class AppSettings:
 class DBSettings:
     user: str = "postgres"
     password: str = "c4rec4"
-    host: str = "localhost"
+    host: str = "147.182.190.223"   # <— NO 'localhost'
     port: int = 5432
-    dbname: str = "corilian"
-    appname: str = "DataLoaderAPI"
+    dbname: str = "gtim_services_dev"
+    appname: str = "CartasAsignacionAPI"
     min_size: int = 1
     max_size: int = 5
     timeout_qry: float = 5.0
     timeout_conn: float = 45.0
+
+
 
     def check_values(self) -> bool:
         # Validate the database settings.

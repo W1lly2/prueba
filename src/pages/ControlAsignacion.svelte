@@ -62,32 +62,32 @@
 
   // ------- Carga datos de usuario por ID (blur o Enter) -------
   async function buscarUsuario() {
-  const userId = (state.usuario || '').trim();
-  if (!userId) return;
+    const userId = (state.usuario || '').trim();
+    if (!userId) return;
 
-  try {
-    const u: any = await getUserById(userId);
-    setCarta({
-      ...state,
-      usuario: userId,
-      nombreUsuario: cleanLabel(u?.user_name),
-      correoUsuario: u?.user_email ?? '',
-      ubicacionUsuario: cleanLabel(u?.user_location),   // <-- aquí estaba el typo
-      supervisorId: u?.supervisor_user_id ?? '',
-      correoSupervisor: u?.supervisor_email ?? ''
-    });
-  } catch (err) {
-    console.error('Error cargando usuario:', err);
-    setCarta({
-      ...state,
-      nombreUsuario: '',
-      correoUsuario: '',
-      ubicacionUsuario: '',
-      supervisorId: '',
-      correoSupervisor: ''
-    });
+    try {
+      const u: any = await getUserById(userId);
+      setCarta({
+        ...state,
+        usuario: userId,
+        nombreUsuario: cleanLabel(u?.user_name),
+        correoUsuario: u?.user_email ?? '',
+        ubicacionUsuario: cleanLabel(u?.user_location),
+        supervisorId: u?.supervisor_user_id ?? '',
+        correoSupervisor: u?.supervisor_email ?? ''
+      });
+    } catch (err) {
+      console.error('Error cargando usuario:', err);
+      setCarta({
+        ...state,
+        nombreUsuario: '',
+        correoUsuario: '',
+        ubicacionUsuario: '',
+        supervisorId: '',
+        correoSupervisor: ''
+      });
+    }
   }
-}
 
   // Autocompletar asset tag / descripción si teclean serial en la tabla (ASIGNADOS)
   async function onSerialAsignadoBlur(i: number) {
@@ -210,8 +210,9 @@
         <!-- Datos usuario -->
         <div class="row g-3">
           <div class="col-md-2">
-            <label class="form-label fw-bold">User ID</label>
+            <label for="inp-userid" class="form-label fw-bold">User ID</label>
             <input
+              id="inp-userid"
               class="form-control"
               placeholder="USUARIO1"
               bind:value={state.usuario}
@@ -220,28 +221,28 @@
           </div>
 
           <div class="col-md-3">
-            <label class="form-label">Nombre de Usuario</label>
-            <input class="form-control" bind:value={state.nombreUsuario} disabled />
+            <label for="inp-nombre" class="form-label">Nombre de Usuario</label>
+            <input id="inp-nombre" class="form-control" bind:value={state.nombreUsuario} disabled />
           </div>
 
           <div class="col-md-3">
-            <label class="form-label">Correo</label>
-            <input class="form-control" bind:value={state.correoUsuario} disabled />
+            <label for="inp-correo" class="form-label">Correo</label>
+            <input id="inp-correo" class="form-control" bind:value={state.correoUsuario} disabled />
           </div>
 
           <div class="col-md-2">
-            <label class="form-label">Ubicación</label>
-            <input class="form-control" bind:value={state.ubicacionUsuario} disabled />
+            <label for="inp-ubicacion" class="form-label">Ubicación</label>
+            <input id="inp-ubicacion" class="form-control" bind:value={state.ubicacionUsuario} disabled />
           </div>
 
           <div class="col-md-2">
-            <label class="form-label">Supervisor ID</label>
-            <input class="form-control" bind:value={state.supervisorId} disabled />
+            <label for="inp-supervisorid" class="form-label">Supervisor ID</label>
+            <input id="inp-supervisorid" class="form-control" bind:value={state.supervisorId} disabled />
           </div>
 
           <div class="col-md-4">
-            <label class="form-label">Correo de Supervisor</label>
-            <input class="form-control" bind:value={state.correoSupervisor} disabled />
+            <label for="inp-correosup" class="form-label">Correo de Supervisor</label>
+            <input id="inp-correosup" class="form-control" bind:value={state.correoSupervisor} disabled />
           </div>
         </div>
 
@@ -249,9 +250,9 @@
 
         <!-- Técnico -->
         <div class="mb-3">
-          <label class="form-label fw-bold">Técnico</label>
+          <label for="sel-tecnico" class="form-label fw-bold">Técnico</label>
           <div class="input-group">
-            <select class="form-select" bind:value={tecnicoSeleccionado}>
+            <select id="sel-tecnico" class="form-select" bind:value={tecnicoSeleccionado}>
               <option value="" selected>Selecciona técnico…</option>
               <option value="SANCHG27">SANCHG27 - Gaston Sanchez (Monterrey IT)</option>
             </select>
@@ -260,16 +261,18 @@
 
         <!-- Asignar dispositivo -->
         <div class="mb-3">
-          <label class="form-label fw-bold">Dispositivo</label>
+          <label for="inp-asignar-desc" class="form-label fw-bold">Dispositivo</label>
           <div class="row g-2">
             <div class="col-md">
               <input
+                id="inp-asignar-desc"
                 class="form-control"
                 placeholder="Descripción (opcional)"
                 bind:value={descripcionTmp} />
             </div>
             <div class="col-md-3">
               <input
+                id="inp-asignar-serial"
                 class="form-control"
                 placeholder="Número de serie"
                 bind:value={serieTmp} />
@@ -284,8 +287,8 @@
 
         <!-- Tipo de asignación -->
         <div class="mb-4">
-          <label class="form-label fw-bold">Tipo de Asignación</label>
-          <select class="form-select" bind:value={state.tipoAsignacion}>
+          <label for="sel-tipo-asignacion" class="form-label fw-bold">Tipo de Asignación</label>
+          <select id="sel-tipo-asignacion" class="form-select" bind:value={state.tipoAsignacion}>
             <option value="" selected>Selecciona…</option>
             <option value="PC Refresh">PC Refresh</option>
             <option value="Alta">Alta</option>
@@ -355,10 +358,11 @@
 
         <!-- Retirar -->
         <div class="mt-4">
-          <label class="form-label fw-bold">Retirar Dispositivo</label>
+          <label for="inp-retirar-serial" class="form-label fw-bold">Retirar Dispositivo</label>
           <div class="row g-2">
             <div class="col">
               <input
+                id="inp-retirar-serial"
                 class="form-control"
                 placeholder="Ej: SN987654321"
                 bind:value={serieRetirarTmp} />
