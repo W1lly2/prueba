@@ -1,20 +1,27 @@
 <script lang="ts">
   import Router from 'svelte-spa-router';
-  import Login from './pages/Login.svelte';
+
+  import Login   from './pages/Login.svelte';
   import Control from './pages/ControlAsignacion.svelte';
   import Revision from './pages/RevisionAprobacion.svelte';
-  import Carta from './pages/CartaAceptacion.svelte';
+  import Carta   from './pages/CartaAceptacion.svelte';
+
+  // NUEVO
+  import YaAprobado   from './pages/YaAprobado.svelte';
+  import CartaFirmada from './pages/CartaFirmada.svelte';
 
   const routes = {
-    '/': Login,
+    '/':        Login,
     '/control': Control,
     '/revision': Revision,
-    '/carta': Carta
+    '/carta':   Carta,
+
+    // NUEVO
+    '/ya-aprobado':   YaAprobado,
+    '/carta-firmada': CartaFirmada,
   };
 </script>
 
-<div class="min-h-screen bg-gray-50">
-  <main class="pt-0">
-    <Router {routes} />
-  </main>
-</div>
+<main class="pt-0">
+  <Router {routes} />
+</main>
