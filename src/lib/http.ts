@@ -1,12 +1,19 @@
-// src/lib/http.ts
+﻿// src/lib/http.ts
 // Cliente HTTP (Axios) + helper opcional con fetch
 
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 
-const BASE =
-  (import.meta as any).env?.VITE_API_BASE ||
-  'http://127.0.0.1:8000/api/v1'; // <-- ajusta aquí o via .env
+const rawBase = (import.meta as any).env?.VITE_API_BASE;
+
+if (!rawBase || typeof rawBase !== 'string') {
+  throw new Error('VITE_API_BASE no esta configurado; define la URL del backend en el entorno.');
+}
+
+const BASE = rawBase.replace(/\/$/, '');
+const ORIGIN = BASE.replace(/\/api\/v1$/i, '');
+
+export const apiOrigin = ORIGIN || BASE;
 
 /** Axios preconfigurado */
 export const api: AxiosInstance = axios.create({

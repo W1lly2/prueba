@@ -1,18 +1,18 @@
-<script lang="ts">
+﻿<script lang="ts">
   import { get } from 'svelte/store';
   import { push } from 'svelte-spa-router';
 
   import { carta, type Carta, type Dispositivo } from '../stores/cartas';
-  import { getUserById, getAssetBySerial } from '../lib/api';
+  import { getUserById, getAssetBySerial, crearCarta } from '../lib/api';
 
   // Estado reactivo del store
   $: state = $carta as Carta;
 
   // Auxiliares del form (inputs temporales)
   let tecnicoSeleccionado = '';
-  // ahora este campo sirve para ESCRIBIR el NÚMERO DE SERIE o una descripción
+  // ahora este campo sirve para ESCRIBIR el NÃšMERO DE SERIE o una descripciÃ³n
   let dispositivoInput = '';
-  let serieRetirarTmp = '';
+  let serieRetirarTmp = '';\n\n  let generando = false;\n  let errorGenerar = '';
 
   function setCarta(next: Carta) {
     carta.set(next);
@@ -44,8 +44,8 @@
 
   function cleanLabel(s?: string): string {
     if (!s) return '';
-    // Quita "Nombre " o "Ubicación " al inicio (con o sin acento)
-    return s.replace(/^(nombre|ubicaci[oó]n)\s+/i, '').trim();
+    // Quita "Nombre " o "UbicaciÃ³n " al inicio (con o sin acento)
+    return s.replace(/^(nombre|ubicaci[oÃ³]n)\s+/i, '').trim();
   }
 
   function updateAsignado(i: number, campo: keyof Dispositivo, val: string) {
@@ -89,7 +89,7 @@
     }
   }
 
-  // Autocompletar asset tag / descripción si teclean serial en la tabla (ASIGNADOS)
+  // Autocompletar asset tag / descripciÃ³n si teclean serial en la tabla (ASIGNADOS)
   async function onSerialAsignadoBlur(i: number) {
     const sn = state.asignados[i]?.numeroSerie?.trim();
     if (!sn) return;
@@ -120,21 +120,21 @@
   }
 
   // -------- Asignar Dispositivo ----------
-  // Se usa "dispositivoInput": si contiene un número de serie válido, autocompleta; si no,
-  // se considera descripción libre y se agrega tal cual.
+  // Se usa "dispositivoInput": si contiene un nÃºmero de serie vÃ¡lido, autocompleta; si no,
+  // se considera descripciÃ³n libre y se agrega tal cual.
   async function asignarDispositivo() {
     const input = (dispositivoInput || '').trim();
     if (!input) return;
 
     let nuevo: Dispositivo = {
-      descripcion: input,  // si era serie, luego lo sustituimos por la descripción de la API
+      descripcion: input,  // si era serie, luego lo sustituimos por la descripciÃ³n de la API
       assetTag: '',
-      numeroSerie: '',     // si era serie, lo llenamos; si era texto libre, queda vacío
+      numeroSerie: '',     // si era serie, lo llenamos; si era texto libre, queda vacÃ­o
       accesorio: ''
     };
 
     try {
-      // Intentar tratar el input como número de serie
+      // Intentar tratar el input como nÃºmero de serie
       const a = await getAssetBySerial(input);
       if (a && (a.asset_serial_number || a.asset_tag || a.asset_description)) {
         // Fue un serial: autocompletar
@@ -142,11 +142,11 @@
         nuevo.assetTag = a.asset_tag ?? '';
         nuevo.numeroSerie = a.asset_serial_number ?? input;
       } else {
-        // No hubo match: lo dejamos como descripción libre
+        // No hubo match: lo dejamos como descripciÃ³n libre
         nuevo.numeroSerie = '';
       }
     } catch {
-      // Si falla la API, lo dejamos como descripción libre
+      // Si falla la API, lo dejamos como descripciÃ³n libre
       nuevo.numeroSerie = '';
     }
 
@@ -154,7 +154,7 @@
     dispositivoInput = '';
   }
 
-  // -------- Retirar Dispositivo (misma lógica de autocompletar) ----------
+  // -------- Retirar Dispositivo (misma lÃ³gica de autocompletar) ----------
   async function retirarDispositivo() {
     const serial = (serieRetirarTmp || '').trim();
     if (!serial) return;
@@ -174,7 +174,7 @@
         nuevo.numeroSerie = a.asset_serial_number ?? serial;
       }
     } catch (err) {
-      console.warn('No se pudo autocompletar activo (retirar) por número de serie:', err);
+      console.warn('No se pudo autocompletar activo (retirar) por nÃºmero de serie:', err);
     }
 
     setCarta({ ...state, retirados: [...state.retirados, nuevo] });
@@ -188,35 +188,62 @@
     setCarta({ ...state, retirados: state.retirados.filter((_, idx) => idx !== i) });
   }
 
-  function generarCarta() {
-    push('/revision');
+  async function generarCarta() {
+    if (generando) return;
+    errorGenerar = '';
+    generando = true;
+    try {
+      const current = get(carta);
+      const resp = await crearCarta(current);
+      const folio = resp?.folio ?? current.folio ?? '';
+      const next: Carta = {
+        ...current,
+        folio,
+        aceptoTerminos: false
+      };
+      if (resp?.carta && typeof resp.carta === 'object') {
+        const detalles = resp.carta as Partial<Carta>;
+        Object.assign(next, detalles);
+        if (typeof detalles.folio === 'string' && detalles.folio) {
+          next.folio = detalles.folio;
+        }
+      }
+      carta.set(next);
+      push('/revision');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'No se pudo generar la carta';
+      errorGenerar = msg || 'No se pudo generar la carta';
+    } finally {
+      generando = false;
+    }
   }
 </script>
 
 <div class="min-vh-100 py-4" style="background:#f3f4f6;">
   <div class="container">
 
-    <!-- Header con logos y sesión -->
+    <!-- Header con logos y sesiÃ³n -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <img src="/gtim.jpg" alt="GTIM" class="logo-left" />
       <div class="d-flex align-items-center gap-2">
         <span class="badge text-bg-light rounded-pill px-3 py-2">
           Hola, <strong>{state.aprobadorDetectado || 'ADMIN'}</strong>
         </span>
-        <button class="btn btn-outline-danger btn-sm" on:click={cerrarSesion}>Cerrar sesión</button>
+        <button class="btn btn-outline-danger btn-sm" on:click={cerrarSesion}>Cerrar sesiÃ³n</button>
       </div>
       <img src="/whirlpool-corp.jpg" alt="Whirlpool Corporation" class="logo-right" />
     </div>
 
     <div class="card shadow-sm">
       <div class="card-body">
-        <h2 class="h4 text-center mb-4">Control de Asignación de Equipos</h2>
+        <h2 class="h4 text-center mb-4">Control de AsignaciÃ³n de Equipos</h2>
 
         <!-- Datos usuario -->
         <div class="row g-3">
           <div class="col-md-2">
-            <label class="form-label fw-bold">User ID</label>
+            <label class="form-label fw-bold" for="user-id">User ID</label>
             <input
+              id="user-id"
               class="form-control"
               placeholder="USUARIO1"
               bind:value={state.usuario}
@@ -225,39 +252,39 @@
           </div>
 
           <div class="col-md-3">
-            <label class="form-label">Nombre de Usuario</label>
-            <input class="form-control" bind:value={state.nombreUsuario} disabled />
+            <label class="form-label" for="nombre-usuario">Nombre de Usuario</label>
+            <input id="nombre-usuario" class="form-control" bind:value={state.nombreUsuario} disabled />
           </div>
 
           <div class="col-md-3">
-            <label class="form-label">Correo</label>
-            <input class="form-control" bind:value={state.correoUsuario} disabled />
+            <label class="form-label" for="correo-usuario">Correo</label>
+            <input id="correo-usuario" class="form-control" bind:value={state.correoUsuario} disabled />
           </div>
 
           <div class="col-md-2">
-            <label class="form-label">Ubicación</label>
-            <input class="form-control" bind:value={state.ubicacionUsuario} disabled />
+            <label class="form-label" for="ubicacion-usuario">UbicaciÃ³n</label>
+            <input id="ubicacion-usuario" class="form-control" bind:value={state.ubicacionUsuario} disabled />
           </div>
 
           <div class="col-md-2">
-            <label class="form-label">Supervisor ID</label>
-            <input class="form-control" bind:value={state.supervisorId} disabled />
+            <label class="form-label" for="supervisor-id">Supervisor ID</label>
+            <input id="supervisor-id" class="form-control" bind:value={state.supervisorId} disabled />
           </div>
 
           <div class="col-md-4">
-            <label class="form-label">Correo de Supervisor</label>
-            <input class="form-control" bind:value={state.correoSupervisor} disabled />
+            <label class="form-label" for="correo-supervisor">Correo de Supervisor</label>
+            <input id="correo-supervisor" class="form-control" bind:value={state.correoSupervisor} disabled />
           </div>
         </div>
 
         <hr class="my-4" />
 
-        <!-- Técnico -->
+        <!-- TÃ©cnico -->
         <div class="mb-3">
-          <label class="form-label fw-bold">Técnico</label>
+          <label class="form-label fw-bold" for="tecnico-select">TÃ©cnico</label>
           <div class="input-group">
-            <select class="form-select" bind:value={tecnicoSeleccionado}>
-              <option value="" selected>Selecciona técnico…</option>
+            <select id="tecnico-select" class="form-select" bind:value={tecnicoSeleccionado}>
+              <option value="" selected>Selecciona tÃ©cnicoâ€¦</option>
               <option value="SANCHG27">SANCHG27 - Gaston Sanchez (Monterrey IT)</option>
             </select>
           </div>
@@ -265,12 +292,13 @@
 
         <!-- Asignar dispositivo (UN SOLO CAMPO) -->
         <div class="mb-3">
-          <label class="form-label fw-bold">Dispositivo</label>
+          <label class="form-label fw-bold" for="dispositivo-input">Dispositivo</label>
           <div class="row g-2">
             <div class="col-md">
               <input
+                id="dispositivo-input"
                 class="form-control"
-                placeholder="Descripción o número de serie"
+                placeholder="DescripciÃ³n o nÃºmero de serie"
                 bind:value={dispositivoInput} />
             </div>
             <div class="col-auto">
@@ -281,11 +309,11 @@
           </div>
         </div>
 
-        <!-- Tipo de asignación -->
+        <!-- Tipo de asignaciÃ³n -->
         <div class="mb-4">
-          <label class="form-label fw-bold">Tipo de Asignación</label>
-          <select class="form-select" bind:value={state.tipoAsignacion}>
-            <option value="" selected>Selecciona…</option>
+          <label class="form-label fw-bold" for="tipo-asignacion">Tipo de AsignaciÃ³n</label>
+          <select id="tipo-asignacion" class="form-select" bind:value={state.tipoAsignacion}>
+            <option value="" selected>Seleccionaâ€¦</option>
             <option value="PC Refresh">PC Refresh</option>
             <option value="Alta">Alta</option>
             <option value="Cambio">Cambio</option>
@@ -298,9 +326,9 @@
           <table class="table table-sm align-middle">
             <thead>
               <tr class="table-secondary">
-                <th style="width:40%">Descripción Dispositivo</th>
+                <th style="width:40%">DescripciÃ³n Dispositivo</th>
                 <th style="width:15%">Asset Tag</th>
-                <th style="width:20%">Número de Serie</th>
+                <th style="width:20%">NÃºmero de Serie</th>
                 <th style="width:15%">Accesorio</th>
                 <th style="width:10%"></th>
               </tr>
@@ -354,10 +382,11 @@
 
         <!-- Retirar -->
         <div class="mt-4">
-          <label class="form-label fw-bold">Retirar Dispositivo</label>
+          <label class="form-label fw-bold" for="retirar-input">Retirar Dispositivo</label>
           <div class="row g-2">
             <div class="col">
               <input
+                id="retirar-input"
                 class="form-control"
                 placeholder="Ej: SN987654321"
                 bind:value={serieRetirarTmp} />
@@ -376,9 +405,9 @@
           <table class="table table-sm align-middle">
             <thead>
               <tr class="table-secondary">
-                <th style="width:40%">Descripción Dispositivo</th>
+                <th style="width:40%">DescripciÃ³n Dispositivo</th>
                 <th style="width:15%">Asset Tag</th>
-                <th style="width:20%">Número de Serie</th>
+                <th style="width:20%">NÃºmero de Serie</th>
                 <th style="width:15%">Accesorio</th>
                 <th style="width:10%"></th>
               </tr>
@@ -432,7 +461,7 @@
 
         <div class="d-flex justify-content-end mt-4">
           <button class="btn btn-success" on:click={generarCarta}>
-            Generar carta de asignación
+            Generar carta de asignaciÃ³n
           </button>
         </div>
       </div>
